@@ -11,7 +11,7 @@ pinned: false
 
 # HemVLM -- Prediagnostico de leucemia
 
-Prototipo academico (Trabajo Terminal 2027-A140, ESCOM-IPN) que genera
+Prototipo academico que genera
 descripciones morfologicas en lenguaje natural de celulas de sangre
 periferica (sanas o leucemicas) a partir de una imagen de microscopio,
 usando una arquitectura BLIP con LoRA en el decoder.

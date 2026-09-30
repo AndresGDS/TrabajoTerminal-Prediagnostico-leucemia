@@ -1,0 +1,67 @@
+# --- Entorno de Python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Datasets crudos (se descargan aparte, ver README.md) ---
+bloodcells_dataset/
+LeukemiaAttri/
+pbc_attr_v1_train.csv
+pbc_attr_v1_val.csv
+pbc_attr_v1_test.csv
+*.zip
+
+# --- Datos procesados (se regeneran con los scripts de build_*.py) ---
+data/
+data_ft_train/
+data_ft_val/
+data_ft_test/
+
+# --- Checkpoints y modelos entrenados (pesan GBs, no van a Git) ---
+checkpoints/
+*.pt
+*.bin
+*.safetensors
+
+# --- Reportes/EDA generados (se regeneran corriendo los scripts) ---
+eda_report/
+eda_full_report/
+eda_full_report_faithful/
+deteccion_celulas/dataset_yolo/
+deteccion_celulas/detector_final/
+
+# --- Resultados de evaluacion con detalle por imagen (pueden pesar, se regeneran) ---
+*_captions_detalle.csv
+*_predicciones.csv
+*_image_details.csv
+*_duplicates.csv
+
+# --- Archivos sensibles / confidenciales ---
+REESTRUC_140.pdf
+.env
+*.env
+HF_TOKEN*
+*token*.txt
+*TOKEN*.txt
+secrets.json
+credentials.json
+
+# --- Carpetas de pruebas ajenas al proyecto de TT ---
+pruebatelegram/
+
+# --- Archivos con nombres raros (redirecciones accidentales de PowerShell) ---
+C:*.txt
+CUsers*
+
+# --- Imagenes sueltas de prueba en la raiz (capturas, pruebas manuales) ---
+*.jpg
+*.jpeg
+*.png
+
+# --- Sistema operativo / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

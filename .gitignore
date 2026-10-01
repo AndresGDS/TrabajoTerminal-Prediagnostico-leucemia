@@ -8,6 +8,8 @@ __pycache__/
 # --- Datasets crudos (se descargan aparte, ver README.md) ---
 bloodcells_dataset/
 LeukemiaAttri/
+PKG-AML-Cytomorphology_LMU/
+AML-Cytomorphology_LMU/
 pbc_attr_v1_train.csv
 pbc_attr_v1_val.csv
 pbc_attr_v1_test.csv

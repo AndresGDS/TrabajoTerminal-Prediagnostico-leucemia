@@ -9,15 +9,23 @@ traduce y normaliza la descripcion al espanol.
 Uso (PowerShell), en una terminal:
     uvicorn api_llm:app --reload --port 8000
 
+Modelos de descripcion seleccionables (GET /models, y campo opcional "modelo"
+en POST /analyze): "vitb16" (por defecto, se carga al arrancar) y "fastvit"
+(se carga la primera vez que se elige; requiere el checkpoint de
+train_hemblip_fastvit.py y la libreria timm). Si no se envia "modelo", el
+comportamiento es el mismo de siempre.
+
 Requiere: el modelo Qwen2.5-1.5B-Instruct se descarga solo la primera vez
 (~3GB). Si tu GPU va muy justa de memoria junto con BLIP, cambia
 LLM_MODEL_NAME a "Qwen/Qwen2.5-0.5B-Instruct" (mucho mas ligero).
 """
 
 import io
+import os
 import re
+import threading
 import torch
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from transformers import (
@@ -34,7 +42,38 @@ MODEL_VERSION_LABEL = "HemVLM replica exacta (BLIP + LoRA cross-attention + ulti
 
 LLM_MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"  # cambia a "Qwen/Qwen2.5-0.5B-Instruct" si falta VRAM
 
-app = FastAPI(title="HemVLM API (con post-procesamiento LLM)", version="2.0")
+# Variante con encoder FastViT (generada por train_hemblip_fastvit.py /
+# fix_and_export_fastvit_model.py). Se puede cambiar la ruta con variables de
+# entorno sin tocar el codigo.
+FASTVIT_CHECKPOINT = os.environ.get(
+    "HEMVLM_FASTVIT_CHECKPOINT", "./checkpoints/hemblip_fastvit/hemblip_fastvit_final.pt")
+FASTVIT_PROCESSOR_DIR = os.environ.get(
+    "HEMVLM_FASTVIT_PROCESSOR", "./checkpoints/hemblip_fastvit/processor")
+
+# --------------------------------------------------------------------------- #
+# Registro de modelos de descripcion. Solo hay entradas para modelos que
+# realmente existen en el proyecto; el frontend las consulta en GET /models.
+#   - "vitb16": se carga al arrancar (comportamiento original).
+#   - "fastvit": se carga la primera vez que alguien lo elige (carga diferida),
+#     porque con 4 GB de VRAM junto con BLIP + Qwen no siempre cabe en GPU.
+# --------------------------------------------------------------------------- #
+DEFAULT_MODEL_KEY = "vitb16"
+MODEL_REGISTRY = {
+    "vitb16": {
+        "etiqueta": "ViT-B/16",
+        "descripcion": "Línea base del proyecto.",
+        "tipo": "blip",
+        "version": MODEL_VERSION_LABEL,
+    },
+    "fastvit": {
+        "etiqueta": "FastViT",
+        "descripcion": "Encoder alternativo FastViT, más ligero. Variante experimental del proyecto.",
+        "tipo": "fastvit",
+        "version": "HemVLM con encoder FastViT (BLIP + LoRA cross-attention)",
+    },
+}
+
+app = FastAPI(title="HemVLM API (con post-procesamiento LLM)", version="2.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,20 +83,104 @@ app.add_middleware(
 )
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-processor = None
-caption_model = None
+loaded_models = {}            # clave -> dict(model, processor, preprocess, device, tipo)
+_load_lock = threading.Lock()
 llm_tokenizer = None
 llm_model = None
 
 
-@app.on_event("startup")
-def load_models():
-    global processor, caption_model, llm_tokenizer, llm_model
-
+def _load_vitb16() -> dict:
+    """Modelo original: se carga exactamente como antes (from_pretrained)."""
     print(f"[HemVLM API] Cargando modelo de descripcion desde: {MODEL_DIR}")
     processor = BlipProcessor.from_pretrained(MODEL_DIR)
-    caption_model = BlipForConditionalGeneration.from_pretrained(MODEL_DIR).to(device)
-    caption_model.eval()
+    model = BlipForConditionalGeneration.from_pretrained(MODEL_DIR).to(device)
+    model.eval()
+    return {"model": model, "processor": processor, "preprocess": None,
+            "device": device, "tipo": "blip"}
+
+
+def _load_fastvit() -> dict:
+    """FastViT no es un BlipForConditionalGeneration estandar (tiene el
+    vision_model reemplazado), asi que se reutiliza la misma reconstruccion
+    que ya valida generate_caption_fastvit.py / compare_encoders.py.
+    Se carga primero en CPU; si hay VRAM libre se mueve a GPU y, si no cabe,
+    se queda en CPU (mas lento, pero funciona)."""
+    import timm
+    from generate_caption_fastvit import load_model as build_fastvit_model
+
+    print(f"[HemVLM API] Cargando variante FastViT desde: {FASTVIT_CHECKPOINT}")
+    model = build_fastvit_model(FASTVIT_CHECKPOINT, "cpu")
+    target = device
+    if target == "cuda":
+        try:
+            model.to("cuda")
+        except (torch.cuda.OutOfMemoryError, RuntimeError):
+            model.to("cpu")
+            torch.cuda.empty_cache()
+            target = "cpu"
+            print("[HemVLM API] Sin VRAM suficiente para FastViT: se usara CPU.")
+    model.eval()
+
+    processor = BlipProcessor.from_pretrained(FASTVIT_PROCESSOR_DIR)
+    # Mismo preprocesamiento que en la evaluacion: transform propio de timm
+    data_config = timm.data.resolve_model_data_config(model.vision_model.backbone)
+    transform = timm.data.create_transform(**data_config, is_training=False)
+    return {"model": model, "processor": processor, "preprocess": transform,
+            "device": target, "tipo": "fastvit"}
+
+
+_LOADERS = {"vitb16": _load_vitb16, "fastvit": _load_fastvit}
+
+
+def model_availability(key: str):
+    """(disponible, motivo). Comprueba archivos y dependencias sin cargar nada."""
+    if key == "vitb16":
+        if os.path.isdir(MODEL_DIR):
+            return True, None
+        return False, f"No se encontró la carpeta del modelo ({MODEL_DIR})."
+    if key == "fastvit":
+        if not os.path.isfile(FASTVIT_CHECKPOINT):
+            return False, f"No se encontró el checkpoint ({FASTVIT_CHECKPOINT})."
+        if not os.path.isdir(FASTVIT_PROCESSOR_DIR):
+            return False, f"No se encontró la carpeta del processor ({FASTVIT_PROCESSOR_DIR})."
+        try:
+            import timm  # noqa: F401
+        except ImportError:
+            return False, "Falta instalar timm (pip install timm)."
+        return True, None
+    return False, "Modelo desconocido."
+
+
+def get_model(key: str) -> dict:
+    """Devuelve el modelo ya cargado o lo carga la primera vez que se pide."""
+    if key not in MODEL_REGISTRY:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Modelo desconocido: '{key}'. Opciones: {', '.join(MODEL_REGISTRY)}.",
+        )
+    if key in loaded_models:
+        return loaded_models[key]
+
+    etiqueta = MODEL_REGISTRY[key]["etiqueta"]
+    available, reason = model_availability(key)
+    if not available:
+        raise HTTPException(status_code=503, detail=f"El modelo {etiqueta} no está disponible: {reason}")
+
+    with _load_lock:
+        if key not in loaded_models:
+            try:
+                loaded_models[key] = _LOADERS[key]()
+            except Exception as e:
+                raise HTTPException(
+                    status_code=503, detail=f"No se pudo cargar el modelo {etiqueta}: {e}")
+    return loaded_models[key]
+
+
+@app.on_event("startup")
+def load_models():
+    global llm_tokenizer, llm_model
+
+    loaded_models[DEFAULT_MODEL_KEY] = _LOADERS[DEFAULT_MODEL_KEY]()
 
     print(f"[HemVLM API] Cargando LLM de post-procesamiento: {LLM_MODEL_NAME}")
     llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_NAME)
@@ -70,14 +193,20 @@ def load_models():
     print(f"[HemVLM API] Listo. Dispositivo: {device}")
 
 
-def generate_caption_en(image: Image.Image) -> str:
-    inputs = processor(images=image, return_tensors="pt").to(device)
+def generate_caption_en(image: Image.Image, bundle: dict) -> str:
+    """Genera el caption en ingles con el modelo indicado. Los parametros de
+    generacion son los mismos que se usaron en la evaluacion."""
+    target = bundle["device"]
+    if bundle["tipo"] == "fastvit":
+        pixel_values = bundle["preprocess"](image).unsqueeze(0).to(target)
+    else:
+        pixel_values = bundle["processor"](images=image, return_tensors="pt").to(target)["pixel_values"]
     with torch.no_grad():
-        output_ids = caption_model.generate(
-            pixel_values=inputs["pixel_values"], max_length=64, num_beams=4,
+        output_ids = bundle["model"].generate(
+            pixel_values=pixel_values, max_length=64, num_beams=4,
             repetition_penalty=1.5, no_repeat_ngram_size=3,
         )
-    return processor.decode(output_ids[0], skip_special_tokens=True)
+    return bundle["processor"].decode(output_ids[0], skip_special_tokens=True)
 
 
 BLAST_KEYWORDS = ["myeloblast", "lymphoblast", "monoblast", "abnormal promyelocyte", "promyelocyte"]
@@ -147,17 +276,43 @@ def postprocess_with_llm(caption_en: str) -> dict:
 @app.get("/health")
 def health():
     return {
-        "status": "ok" if caption_model is not None and llm_model is not None else "modelos no cargados",
+        "status": "ok" if DEFAULT_MODEL_KEY in loaded_models and llm_model is not None else "modelos no cargados",
         "device": device,
         "modelo": MODEL_VERSION_LABEL,
         "modelo_llm": LLM_MODEL_NAME,
+        "modelos_cargados": list(loaded_models),
     }
 
 
+@app.get("/models")
+def list_models():
+    """Modelos de descripcion que el usuario puede elegir. 'disponible' indica
+    si los archivos y dependencias necesarios existen; 'cargado' si ya estan
+    en memoria (los que no, tardan unos segundos la primera vez)."""
+    models = []
+    for key, info in MODEL_REGISTRY.items():
+        available, reason = model_availability(key)
+        models.append({
+            "clave": key,
+            "etiqueta": info["etiqueta"],
+            "descripcion": info["descripcion"],
+            "disponible": available,
+            "motivo": reason,
+            "cargado": key in loaded_models,
+            "por_defecto": key == DEFAULT_MODEL_KEY,
+        })
+    return {"modelos": models, "por_defecto": DEFAULT_MODEL_KEY}
+
+
 @app.post("/analyze")
-async def analyze(file: UploadFile = File(...)):
-    if caption_model is None or llm_model is None:
+async def analyze(file: UploadFile = File(...), modelo: str = Form(DEFAULT_MODEL_KEY)):
+    """`modelo` es opcional: si no se envia, se usa el modelo original
+    (ViT-B/16), asi que los clientes anteriores siguen funcionando igual."""
+    if DEFAULT_MODEL_KEY not in loaded_models or llm_model is None:
         raise HTTPException(status_code=503, detail="Los modelos no se pudieron cargar.")
+
+    model_key = (modelo or DEFAULT_MODEL_KEY).strip().lower()
+    bundle = get_model(model_key)   # 400 si no existe, 503 si no esta disponible
 
     try:
         contents = await file.read()
@@ -165,8 +320,9 @@ async def analyze(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="No se pudo leer la imagen enviada.")
 
-    caption_en = generate_caption_en(image)
+    caption_en = generate_caption_en(image, bundle)
     llm_result = postprocess_with_llm(caption_en)
+    info = MODEL_REGISTRY[model_key]
 
     return {
         "estado": "exito",
@@ -174,7 +330,10 @@ async def analyze(file: UploadFile = File(...)):
         "descripcion": llm_result["descripcion_es"],
         "diagnostico_detectado": llm_result["diagnostico"],
         "confianza": llm_result["confianza"],
-        "modelo": MODEL_VERSION_LABEL,
+        "modelo": info["version"],
+        "modelo_clave": model_key,
+        "modelo_etiqueta": info["etiqueta"],
+        "dispositivo_modelo": bundle["device"],
         "modelo_llm": LLM_MODEL_NAME,
     }
 

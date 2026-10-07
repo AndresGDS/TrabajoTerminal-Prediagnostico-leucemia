@@ -1,0 +1,10 @@
+[theme]
+base = "light"
+primaryColor = "#1F63B5"
+backgroundColor = "#F5F8FC"
+secondaryBackgroundColor = "#EAF2FC"
+textColor = "#12294A"
+
+[client]
+# Oculta el boton "Deploy" de Streamlit (la app es un prototipo local).
+toolbarMode = "viewer"

@@ -67,3 +67,5 @@ CUsers*
 Thumbs.db
 .vscode/
 .idea/
+# --- BioBERT local (se regenera con prepare_biobert_tokenizer.py) ---
+biobert_local/

@@ -18,6 +18,7 @@ Uso (PowerShell):
 """
 
 import argparse
+import os
 import numpy as np
 import pandas as pd
 import torch
@@ -35,7 +36,14 @@ def main():
     parser.add_argument("--test_csv", type=str, required=True,
                          help="CSV con columnas image_path y caption (la referencia)")
     parser.add_argument("--out_csv", type=str, default="./evaluation_results.csv")
+    parser.add_argument("--biobert_dir", type=str, default="./biobert_local",
+                         help="Carpeta local generada por prepare_biobert_tokenizer.py")
     args = parser.parse_args()
+
+    if not os.path.isdir(args.biobert_dir):
+        raise SystemExit(
+            f"No existe '{args.biobert_dir}'. Corre primero: python prepare_biobert_tokenizer.py"
+        )
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Usando dispositivo: {device}")
@@ -93,8 +101,8 @@ def main():
     print("Computando BERTScore (BioBERT)...")
     P, R, F1 = bert_score(
         cands=hypotheses, refs=references, lang="en",
-        model_type="dmis-lab/biobert-base-cased-v1.1", num_layers=12, idf=False,
-        device=device, use_fast_tokenizer=False,
+        model_type=args.biobert_dir, num_layers=12, idf=False,
+        device=device,
     )
     print(f"Mean BERTScore (F1): {F1.mean():.4f}")
 

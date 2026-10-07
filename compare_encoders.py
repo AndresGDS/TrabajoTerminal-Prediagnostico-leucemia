@@ -121,8 +121,7 @@ def compute_metrics(hypotheses, references, device):
         rougeL_scores.append(s["rougeL"].fmeasure)
     _, _, F1 = bert_score(
         cands=hypotheses, refs=references, lang="en",
-        model_type="dmis-lab/biobert-base-cased-v1.1", num_layers=12, idf=False, device=device,
-        use_fast_tokenizer=False,
+        model_type="./biobert_local", num_layers=12, idf=False, device=device,
     )
     return {
         "BLEU": np.mean(bleu_scores),

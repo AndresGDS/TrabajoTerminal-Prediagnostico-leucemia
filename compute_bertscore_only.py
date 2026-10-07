@@ -12,6 +12,7 @@ Uso (PowerShell):
 """
 
 import argparse
+import os
 import pandas as pd
 import torch
 from bert_score import score as bert_score
@@ -20,7 +21,14 @@ from bert_score import score as bert_score
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv", type=str, required=True)
+    parser.add_argument("--biobert_dir", type=str, default="./biobert_local",
+                         help="Carpeta local generada por prepare_biobert_tokenizer.py")
     args = parser.parse_args()
+
+    if not os.path.isdir(args.biobert_dir):
+        raise SystemExit(
+            f"No existe '{args.biobert_dir}'. Corre primero: python prepare_biobert_tokenizer.py"
+        )
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Usando dispositivo: {device}")
@@ -32,8 +40,8 @@ def main():
     print(f"Calculando BERTScore sobre {len(hypotheses)} pares...")
     P, R, F1 = bert_score(
         cands=hypotheses, refs=references, lang="en",
-        model_type="dmis-lab/biobert-base-cased-v1.1", num_layers=12, idf=False,
-        device=device, use_fast_tokenizer=False,
+        model_type=args.biobert_dir, num_layers=12, idf=False,
+        device=device,
     )
 
     df["bertscore_f1"] = F1.tolist()

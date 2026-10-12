@@ -67,3 +67,24 @@ CUsers*
 Thumbs.db
 .vscode/
 .idea/
+
+# --- EDA de Karina: fuentes y resultados locales ---
+/.venv-eda/
+/data_local/
+/artifacts/eda/
+**/.ipynb_checkpoints/
+*.bak
+*.sqlite
+*.sqlite-*
+*.db
+captions.csv
+/notebooks/eda/resultados_*/
+/docs/eda/figuras/04_ejemplos_campos.pdf
+
+# Solo gráficas agregadas revisadas; no microfotografías.
+!/docs/eda/figuras/wbcatt_01_clases.png
+!/docs/eda/figuras/wbcatt_02_atributos.png
+!/docs/eda/figuras/wbcatt_03_captions.png
+!/docs/eda/figuras/leukemiaattri_01_imagenes_particiones.png
+!/docs/eda/figuras/leukemiaattri_02_clases_json.png
+!/docs/eda/figuras/leukemiaattri_03_atributos_json.png

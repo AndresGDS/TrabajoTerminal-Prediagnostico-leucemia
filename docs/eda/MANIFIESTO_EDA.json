@@ -1,0 +1,249 @@
+{
+  "prepared_utc": "2026-10-12T06:03:00.045381+00:00",
+  "base_branch": "main",
+  "base_commit": "f46fea8225dd0e85e21b111ad9d7892f314ac777",
+  "branch": "karina/eda-wbcatt-leukemiaattri",
+  "analysis_reexecuted": false,
+  "sources": [
+    {
+      "path": "reinicio_eda/01_EDA_WBCAtt.ipynb",
+      "bytes": 2710479,
+      "sha256": "0f0a5ba4dc20de03ddd53c59fc3ba1f38318db4a41656e5e54caae9fce904d53"
+    },
+    {
+      "path": "reinicio_eda/02_EDA_LeukemiaAttri.ipynb",
+      "bytes": 10539385,
+      "sha256": "cad918837a657a7f0aa6053f088b3cb627127176dfbee6e9639a26ae679b5a9c"
+    },
+    {
+      "path": "reinicio_eda/INVENTARIO_INICIAL.md",
+      "bytes": 20165,
+      "sha256": "f317d0a22b38780b98e42755122ae0c0bd986b3474fe274f90a7b799e34a8659"
+    },
+    {
+      "path": "reinicio_eda/informe_eda/INFORME_EDA_WBCAtt_LeukemiaAttri.docx",
+      "bytes": 3773106,
+      "sha256": "726d41bb8282dba2ef4caf710c41b765d33720dc48fcbf1984c258af8121533b"
+    },
+    {
+      "path": "reinicio_eda/informe_eda/INFORME_EDA_WBCAtt_LeukemiaAttri.pdf",
+      "bytes": 5456929,
+      "sha256": "cd18589235dd9176a8a7f4e025f06014a3173dcc1218d4c05cecff326f96ab4f"
+    },
+    {
+      "path": "reinicio_eda/resultados_leukemiaattri/01_imagenes_particiones.png",
+      "bytes": 31237,
+      "sha256": "5e049cd6134fc8aaa6ecd821ae569df879c4706f2c0f6b417cec7647dc9de4a6"
+    },
+    {
+      "path": "reinicio_eda/resultados_leukemiaattri/02_clases_json.png",
+      "bytes": 55810,
+      "sha256": "8096108606e1b57b2b2ac72a2142dcc4939efa18656a16ca92ffe707967bd42b"
+    },
+    {
+      "path": "reinicio_eda/resultados_leukemiaattri/03_atributos_json.png",
+      "bytes": 169955,
+      "sha256": "0b52095d16d99f554d18889bd3bd24078889012ba61f1c1428d18730da7a5596"
+    },
+    {
+      "path": "reinicio_eda/resultados_leukemiaattri/04_ejemplos_campos.pdf",
+      "bytes": 6084314,
+      "sha256": "5f45afc63891797b0e63a0c143a467aa95a60657a5f46f1ca3689c56b6f84d8f"
+    },
+    {
+      "path": "reinicio_eda/resultados_leukemiaattri/tablas_eda.sqlite",
+      "bytes": 406040576,
+      "sha256": "14d10c2bca6d403fa98e359af0cbb4bd6eaca15ab0fa79197c1d43af17269756"
+    },
+    {
+      "path": "reinicio_eda/resultados_wbcatt/01_clases.png",
+      "bytes": 26981,
+      "sha256": "f24e4cbe7c944c47b529b07853cfbed61aa1c171d024ea292015ebf3bbb2975a"
+    },
+    {
+      "path": "reinicio_eda/resultados_wbcatt/02_atributos.png",
+      "bytes": 330836,
+      "sha256": "60c7633dcc609412e32123653dd94e27fcf255e41845f7e459d940e82a9e2b2f"
+    },
+    {
+      "path": "reinicio_eda/resultados_wbcatt/03_captions.png",
+      "bytes": 44208,
+      "sha256": "56b72eb26b0c9748b48cb124191d39851257d328822447661fca34e10424c2ba"
+    },
+    {
+      "path": "reinicio_eda/resultados_wbcatt/tablas_eda.sqlite",
+      "bytes": 99602432,
+      "sha256": "cfb3aad01dad0e2ecda67434683c24409153c25f782d9abe4db55a8cba211078"
+    }
+  ],
+  "notebook_changes": [
+    {
+      "file": "notebooks/eda/01_EDA_WBCAtt.ipynb",
+      "changed_source_cells_zero_based": [
+        0,
+        1
+      ],
+      "retained_output_cells_zero_based": [
+        1,
+        5,
+        19
+      ],
+      "retained_outputs": 9,
+      "removed_outputs": 157
+    },
+    {
+      "file": "notebooks/eda/02_EDA_LeukemiaAttri.ipynb",
+      "changed_source_cells_zero_based": [
+        0,
+        1,
+        25
+      ],
+      "retained_output_cells_zero_based": [
+        1,
+        13,
+        23,
+        33
+      ],
+      "retained_outputs": 16,
+      "removed_outputs": 290
+    }
+  ],
+  "pdf_redactions": [
+    {
+      "page": 9,
+      "kind": "Figura 4. Muestra visual original del notebook WBCAtt"
+    },
+    {
+      "page": 9,
+      "kind": "Ejemplo textual"
+    },
+    {
+      "page": 16,
+      "kind": "Figura 8. Reutilización de la página 2 del PDF de campos"
+    },
+    {
+      "page": 16,
+      "kind": "Caption asociado al campo test (uno de sus textos, sin atribuirlo"
+    }
+  ],
+  "included": [
+    {
+      "path": ".gitignore",
+      "bytes": 2030,
+      "sha256": "791e2598cfde3b2113570083807648b1bbffde6041df2e72f52857f6c5d1bf2e"
+    },
+    {
+      "path": "requirements-eda.txt",
+      "bytes": 245,
+      "sha256": "36611608f6507ccd912d238f01671e5e6e03f6b30a2e6c007a47d224aba653f2"
+    },
+    {
+      "path": "notebooks/eda/01_EDA_WBCAtt.ipynb",
+      "bytes": 559654,
+      "sha256": "9eb67e204cbc64afd746f98c0389094357469b5bff4796360c16d589a1fdad4e"
+    },
+    {
+      "path": "notebooks/eda/02_EDA_LeukemiaAttri.ipynb",
+      "bytes": 489207,
+      "sha256": "a8909e882e75d6fb49ee2ff7bd30bc06c7f5afeff4ef880bc1383fdbb3053458"
+    },
+    {
+      "path": "notebooks/eda/eda_paths.py",
+      "bytes": 1684,
+      "sha256": "c4d1612070ed7931ce2d5535f32813a12375d62ffaa9099bb7b0fbe08e8ea2f7"
+    },
+    {
+      "path": "docs/eda/figuras/leukemiaattri_01_imagenes_particiones.png",
+      "bytes": 31237,
+      "sha256": "5e049cd6134fc8aaa6ecd821ae569df879c4706f2c0f6b417cec7647dc9de4a6"
+    },
+    {
+      "path": "docs/eda/figuras/leukemiaattri_02_clases_json.png",
+      "bytes": 55810,
+      "sha256": "8096108606e1b57b2b2ac72a2142dcc4939efa18656a16ca92ffe707967bd42b"
+    },
+    {
+      "path": "docs/eda/figuras/leukemiaattri_03_atributos_json.png",
+      "bytes": 169955,
+      "sha256": "0b52095d16d99f554d18889bd3bd24078889012ba61f1c1428d18730da7a5596"
+    },
+    {
+      "path": "docs/eda/figuras/wbcatt_01_clases.png",
+      "bytes": 26981,
+      "sha256": "f24e4cbe7c944c47b529b07853cfbed61aa1c171d024ea292015ebf3bbb2975a"
+    },
+    {
+      "path": "docs/eda/figuras/wbcatt_02_atributos.png",
+      "bytes": 330836,
+      "sha256": "60c7633dcc609412e32123653dd94e27fcf255e41845f7e459d940e82a9e2b2f"
+    },
+    {
+      "path": "docs/eda/figuras/wbcatt_03_captions.png",
+      "bytes": 44208,
+      "sha256": "56b72eb26b0c9748b48cb124191d39851257d328822447661fca34e10424c2ba"
+    },
+    {
+      "path": "docs/eda/INFORME_EDA_WBCAtt_LeukemiaAttri.docx",
+      "bytes": 646943,
+      "sha256": "8b43bb8dc50be46651412a5b2b4139f7ed9b877849f5899795f107952cc1ebf8"
+    },
+    {
+      "path": "docs/eda/INFORME_EDA_WBCAtt_LeukemiaAttri.pdf",
+      "bytes": 854125,
+      "sha256": "3f6a829050f1e8a799a57dc6ddd2cc21631234c05ea48d7de3ef5814ff215770"
+    },
+    {
+      "path": "docs/eda/INVENTARIO_INICIAL.md",
+      "bytes": 20408,
+      "sha256": "4561b90e9aa7f4d61a865877ecfd487dbe510254fc15662936b03dbd9018d1ac"
+    },
+    {
+      "path": "docs/eda/README.md",
+      "bytes": 10200,
+      "sha256": "a9de13a7ed26ae3310f3122bda36fe74e210cdcba7d6dbdef09ea2b37ff0d919"
+    },
+    {
+      "path": "docs/eda/REDISTRIBUCION.md",
+      "bytes": 4196,
+      "sha256": "9a02851e3e51521daf8c90c0646ac90b421293502b8b01976e74fa5aaff83e74"
+    }
+  ],
+  "verification": {
+    "source_files_unchanged": 14,
+    "notebooks_syntax_and_schema": "ok",
+    "analysis_cells_unchanged_except_configuration": true,
+    "paths_only_tests": "ok",
+    "documents_scanned": [
+      "docs/eda/INFORME_EDA_WBCAtt_LeukemiaAttri.docx",
+      "docs/eda/INFORME_EDA_WBCAtt_LeukemiaAttri.pdf",
+      "docs/eda/INVENTARIO_INICIAL.md",
+      "docs/eda/MANIFIESTO_EDA.json",
+      "docs/eda/README.md",
+      "docs/eda/REDISTRIBUCION.md",
+      "notebooks/eda/01_EDA_WBCAtt.ipynb",
+      "notebooks/eda/02_EDA_LeukemiaAttri.ipynb",
+      "notebooks/eda/eda_paths.py",
+      "requirements-eda.txt"
+    ],
+    "full_captions_found": 0,
+    "personal_paths_found": 0,
+    "pdf_pages": 18,
+    "pdf_microphotograph_pages_cleared": [
+      9,
+      16
+    ],
+    "docx_embedded_figures": 8,
+    "eda_executed": false,
+    "manifest_self_hash_excluded": true,
+    "git_main_and_origin_unchanged": "f46fea8225dd0e85e21b111ad9d7892f314ac777",
+    "git_index_empty": true,
+    "git_diff_check": "ok",
+    "existing_gitignore_rules_preserved": true,
+    "ignore_rules_checked": true,
+    "pdf_edited_pages_visually_reviewed": [
+      1,
+      9,
+      16
+    ]
+  }
+}
